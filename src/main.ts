@@ -6,7 +6,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
        Open a random youtube video 
     </p>
   </div>
-`
+`;
 
 async function fetchRandomVideo() {
     const apiKey = 'AIzaSyCFtVDxCVG6h_w8OHJRRgqHTDwj1l47icA'; // Replace with your actual API key
@@ -30,6 +30,5 @@ async function fetchRandomVideo() {
 }
 // Attach the fetchRandomVideo function to the window load event
 window.addEventListener('load', ()=>{
-    console.log("ham");
     fetchRandomVideo();
 });
