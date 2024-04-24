@@ -87,7 +87,9 @@ async function closeWindow() {
 // Example usage with custom window size and position
 fetchRandomVideo();
 loadVideoWindow('800,600', '100,100');
-//closeWindow();
+loadVideoWindow('800,600', '200,200');
+loadVideoWindow('800,600', '300,300');
+closeWindow();
 
 // const path: string = '/dev/ttyS0'; // Replace with your serial port path
 // const baudRate: number = 9600; // Replace with your desired baud rate
