@@ -1,12 +1,38 @@
 import { SerialPort } from 'serialport';
 import { ReadlineParser } from '@serialport/parser-readline';
+import type { Puppeteer } from 'puppeteer';
 
 const puppeteer = require('puppeteer');
+let query = '';
 
-async function fetchRandomVideo(windowSize = '620,1080', windowPosition = '0,0') {
+let rand = Math.floor(Math.random() * (5));
+
+switch(rand){
+    case 0:
+        query = 'rick roll'
+        break;
+    case 1:
+        query = 'music'
+        break;
+    case 2:
+        query = 'sports'
+        break;
+    case 3:
+        query = 'gaming'
+        break;
+    case 4:
+        query = 'pets'
+        break;
+}
+
+let windows: Array<any> = [];
+let windowCount = 0;
+let videoIdList: Array<string> = [];
+let results = 50;
+
+async function fetchRandomVideo() {
     const apiKey = 'AIzaSyCFtVDxCVG6h_w8OHJRRgqHTDwj1l47icA'; // Replace with your actual API key
-    const query = 'rick roll'; // Replace with your desired search query
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=1&q=${query}&key=${apiKey}`;
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=${results}&q=${query}&key=${apiKey}`;
 
     try {
         // Fetch random video from YouTube Data API
@@ -19,35 +45,49 @@ async function fetchRandomVideo(windowSize = '620,1080', windowPosition = '0,0')
             return;
         }
 
-        const videoId = data.items[0].id.videoId;
-        const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-
-        // Launch Puppeteer and open a new browser window with configurable size and position
-        const browser = await puppeteer.launch({
-            headless: false, // Run in non-headless mode
-            args: [
-                `--window-size=${windowSize}`,
-                `--window-position=${windowPosition}`
-            ]
-        });
-
-        const page = await browser.newPage();
-        // Go to the video URL
-        await page.goto(videoUrl);
-
-        // Additional logic can be added here
-
-        // Close the browser if necessary
-        // await browser.close();
-
+        for (let i = 0; i < data.items.length; i++) {
+            videoIdList[i] = data.items[i].id.videoId;
+        }
     } catch (error) {
         console.error('Error fetching random video:', error);
     }
 }
 
-// Example usage with custom window size and position
-fetchRandomVideo('800,600', '100,100');
+async function loadVideoWindow(windowSize = '620,1080', windowPosition = '0,0'){
+    let rand = Math.floor(Math.random() * (results));
 
+    const videoUrl = `https://www.youtube.com/watch?v=${videoIdList[rand]}`;
+
+    // Launch Puppeteer and open a new browser window with configurable size and position
+    windows[windowCount] = await puppeteer.launch({
+        headless: false, // Run in non-headless mode
+        args: [
+            `--window-size=${windowSize}`,
+            `--window-position=${windowPosition}`
+        ]
+    });
+
+    const page = await windows[windowCount].newPage();
+    // Go to the video URL
+    await page.goto(videoUrl);
+
+    windowCount++;
+}
+
+async function closeWindow() {
+    let myWindow = windows[windowCount - 1];
+  
+    if ( myWindow != null)
+    {
+      await myWindow.close();
+      windowCount--;
+    }
+}
+
+// Example usage with custom window size and position
+fetchRandomVideo();
+loadVideoWindow('800,600', '100,100');
+//closeWindow();
 
 // const path: string = '/dev/ttyS0'; // Replace with your serial port path
 // const baudRate: number = 9600; // Replace with your desired baud rate
