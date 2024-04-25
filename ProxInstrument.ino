@@ -34,8 +34,8 @@ void loop() {
   }else{ // fail con
     finalDist = lastDist;
   }
-  String proxData = ",Proximity:";
-  proxData = proxData + finalDist;
+  // String proxData = ",Proximity:";
+  proxData = finalDist;
   arduinoData += proxData;
   
   // Serial.println(duration);
@@ -43,5 +43,5 @@ void loop() {
 
   Serial.println(arduinoData);
 
-  delay(100);
+  delay(500);
 }

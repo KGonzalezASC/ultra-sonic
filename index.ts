@@ -3,7 +3,8 @@ import { ReadlineParser } from '@serialport/parser-readline';
 
 const puppeteer = require('puppeteer');
 
-let windows = []; // Array to store Puppeteer browser instances
+let windows : any[] = []; // Array to store Puppeteer browser instances
+let windowNum :number = 0;
 
 async function fetchRandomVideo(windowPosition: string = '0,0', categoryId: string): Promise<void> {
     const apiKey = 'AIzaSyCFtVDxCVG6h_w8OHJRRgqHTDwj1l47icA'; // Replace with your actual API key
@@ -23,6 +24,7 @@ async function fetchRandomVideo(windowPosition: string = '0,0', categoryId: stri
 
         const browser = await puppeteer.launch({
             headless: false,
+            // product:'firefox',
             args: [
                 `--window-size=${windowWidth},${windowHeight}`,
                 `--window-position=${windowPosition}`
@@ -33,7 +35,8 @@ async function fetchRandomVideo(windowPosition: string = '0,0', categoryId: stri
         await page.goto(videoUrl);
 
         // Store the browser instance and window position in the windows array
-        windows.push({ browser, windowPosition });
+        windows.push([ browser, windowPosition ]);
+        windowNum++;
     } else {
         // Otherwise, proceed with fetching a random video from the specified category
         const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=${categoryId}&maxResults=1&q=&key=${apiKey}`;
@@ -66,7 +69,7 @@ async function fetchRandomVideo(windowPosition: string = '0,0', categoryId: stri
             await page.goto(videoUrl);
 
             // Store the browser instance and window position in the windows array
-            windows.push({ browser, windowPosition });
+            windows.push([ browser, windowPosition ]);
 
         } catch (error) {
             console.error('Error fetching random video:', error);
@@ -95,51 +98,64 @@ const petsCategoryId = '15';
 const gamingCategoryId = '20';
 
 // Fetch multiple random music videos
-fetchMultipleRandomVideos(1, musicCategoryId).then(() => {
-    console.log('All music videos fetched and opened in separate windows.');
-});
+// fetchMultipleRandomVideos(1, musicCategoryId).then(() => {
+//     console.log('All music videos fetched and opened in separate windows.');
+// });
 
 // Fetch multiple random sports videos
-fetchMultipleRandomVideos(1, sportsCategoryId).then(() => {
-    console.log('All sports videos fetched and opened in separate windows.');
-});
+// fetchMultipleRandomVideos(1, sportsCategoryId).then(() => {
+//     console.log('All sports videos fetched and opened in separate windows.');
+// });
 
 // Fetch multiple random pets videos
-fetchMultipleRandomVideos(1, petsCategoryId).then(() => {
-    console.log('All pets videos fetched and opened in separate windows.');
-});
+// fetchMultipleRandomVideos(1, petsCategoryId).then(() => {
+//     console.log('All pets videos fetched and opened in separate windows.');
+// });
 
 // Fetch multiple random gaming videos
-fetchMultipleRandomVideos(1, gamingCategoryId).then(() => {
-    console.log('All gaming videos fetched and opened in separate windows.');
-});
+// fetchMultipleRandomVideos(1, gamingCategoryId).then(() => {
+//     console.log('All gaming videos fetched and opened in separate windows.');
+// });
 
-// async function closeWindow() {
-//     let myWindow = windows[windowCount - 1];
-  
-//     if ( myWindow != null)
-//     {
-//       await myWindow.close();
-//       windowCount--;
-//     }
-// }
+async function closeWindow() {
+    let myWindow = windows[windows.length - 1][0];
+    console.log(typeof(myWindow));
+    if ( myWindow != null)
+    {
+      await myWindow.close();
+      windowNum--;
+    }
+}
 
 
 //ARDUINO CODE HERE
 
-// const path: string = '/dev/ttyS0'; // Replace with your serial port path
-// const baudRate: number = 9600; // Replace with your desired baud rate
+const path: string = 'COM5'; // Replace with your serial port path
+const baudRate: number = 9600; // Replace with your desired baud rate
+// 
+const port: SerialPort = new SerialPort({ path, baudRate });
+const parser: ReadlineParser = new ReadlineParser();
+port.pipe(parser);
+// 
+parser.on('data', (data: string) => {
+    console.log(data);
+    if(data!='1204.00'){
+        let fData: number = parseFloat(data);
+        let desiredWindowCount = Math.floor(fData/4 + 1);
 
-// const port: SerialPort = new SerialPort({ path, baudRate });
-// const parser: ReadlineParser = new ReadlineParser();
-// port.pipe(parser);
+        if(desiredWindowCount<windowNum){
+            closeWindow();
+            windows.pop();
+        }else if(desiredWindowCount>windowNum){
+            console.log('if reached');
+            let fetchNum = desiredWindowCount-windowNum
+            fetchMultipleRandomVideos(fetchNum, petsCategoryId)
+        }
+        console.log('supposed window number: ' + windowNum + " actual window number: " + windows.length);
+        console.log('desired window number: ' + desiredWindowCount);
+    }   
+});
 
-// parser.on('data', (data: string) => {
-//     console.log(data);
-// });
-
-// port.write('ROBOT PLEASE RESPOND\n');
-// console.log(port);
 
 
 
